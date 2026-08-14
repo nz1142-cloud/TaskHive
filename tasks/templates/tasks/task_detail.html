@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ task.title }} - TaskHive
+{% endblock %}
+
+
+{% block content %}
+
+<div class="detail-layout">
+
+    <section class="detail-card">
+
+        <div class="task-card-top">
+
+            <span class="category">
+                {{ task.category }}
+            </span>
+
+            <span class="status {{ task.status|lower }}">
+                {{ task.status }}
+            </span>
+
+        </div>
+
+
+        <h1>
+            {{ task.title }}
+        </h1>
+
+
+        <div class="task-meta detail-meta">
+
+            <div>
+                <small>Budget</small>
+                <strong>
+                    ${{ task.budget }}
+                </strong>
+            </div>
+
+            <div>
+                <small>Posted by</small>
+                <strong>
+                    {{ task.created_by.username }}
+                </strong>
+            </div>
+
+            <div>
+                <small>Created</small>
+                <strong>
+                    {{ task.created_at|date:"M d, Y" }}
+                </strong>
+            </div>
+
+        </div>
+
+
+        <hr>
+
+
+        <h2>
+            Project Description
+        </h2>
+
+        <p class="long-description">
+            {{ task.description|linebreaksbr }}
+        </p>
+
+
+        <div class="risk-box">
+
+            <div class="risk-header">
+
+                <span class="risk-icon">
+                    AI
+                </span>
+
+                <div>
+
+                    <h3>
+                        Project Risk Assessment
+                    </h3>
+
+                    <p>
+                        AI-generated project analysis
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="risk-content">
+                {{ task.risk_assessment|linebreaksbr }}
+            </div>
+
+        </div>
+
+
+        {% if user.is_authenticated %}
+
+            {% if task.created_by == user %}
+
+                <div class="owner-actions">
+
+                    <a
+                        href="{% url 'task_bids' task.pk %}"
+                        class="btn btn-primary"
+                    >
+                        View Bids
+                    </a>
+
+
+                    {% if task.status == "Assigned" %}
+
+                        <form
+                            method="post"
+                            action="{% url 'complete_task' task.pk %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="btn btn-outline"
+                            >
+                                Mark as Completed
+                            </button>
+
+                        </form>
+
+                    {% endif %}
+
+                </div>
+
+
+            {% elif task.status == "Open" %}
+
+                {% if already_bid %}
+
+                    <div class="notice success-notice">
+
+                        <strong>
+                            Bid submitted.
+                        </strong>
+
+                        <p>
+                            You have already placed a bid
+                            on this project.
+                        </p>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="contract-notice">
+
+                        <strong>
+                            Before you bid
+                        </strong>
+
+                        <p>
+                            You are about to bid on this project.
+                            Ensure you can deliver before the deadline.
+                        </p>
+
+                    </div>
+
+
+                    {% if show_bid_form %}
+
+                        <div class="bid-form">
+
+                            <h2>
+                                Place Your Bid
+                            </h2>
+
+                            <form
+                                method="post"
+                                action="{% url 'place_bid' task.pk %}"
+                            >
+
+                                {% csrf_token %}
+
+                                {% if bid_form.non_field_errors %}
+                                    {{ bid_form.non_field_errors }}
+                                {% endif %}
+
+
+                                <div class="form-group">
+
+                                    <label>
+                                        Your Amount
+                                    </label>
+
+                                    {{ bid_form.amount }}
+
+                                    {{ bid_form.amount.errors }}
+
+                                </div>
+
+
+                                <div class="form-group">
+
+                                    <label>
+                                        Why are you the best?
+                                    </label>
+
+                                    {{ bid_form.message }}
+
+                                    {{ bid_form.message.errors }}
+
+                                </div>
+
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary"
+                                >
+                                    Submit Bid
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    {% else %}
+
+                        <a
+                            href="{% url 'place_bid' task.pk %}"
+                            class="btn btn-primary"
+                        >
+                            Place a Bid
+                        </a>
+
+                    {% endif %}
+
+                {% endif %}
+
+            {% endif %}
+
+        {% else %}
+
+            <div class="contract-notice">
+
+                <strong>
+                    Want to bid on this project?
+                </strong>
+
+                <p>
+                    Please login or create an account first.
+                </p>
+
+                <a
+                    href="{% url 'login' %}"
+                    class="btn btn-primary"
+                >
+                    Login to Bid
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <aside class="side-card">
+
+        <h3>
+            About this Task
+        </h3>
+
+        <div class="side-item">
+
+            <span>
+                Category
+            </span>
+
+            <strong>
+                {{ task.category }}
+            </strong>
+
+        </div>
+
+
+        <div class="side-item">
+
+            <span>
+                Budget
+            </span>
+
+            <strong>
+                ${{ task.budget }}
+            </strong>
+
+        </div>
+
+
+        <div class="side-item">
+
+            <span>
+                Bids
+            </span>
+
+            <strong>
+                {{ bids|length }}
+            </strong>
+
+        </div>
+
+
+        <div class="side-item">
+
+            <span>
+                Status
+            </span>
+
+            <strong>
+                {{ task.status }}
+            </strong>
+
+        </div>
+
+    </aside>
+
+</div>
+
+{% endblock %}
