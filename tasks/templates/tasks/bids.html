@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Bids - {{ task.title }}
+{% endblock %}
+
+
+{% block content %}
+
+<div class="page-heading">
+
+    <span class="hero-badge">
+        Task Management
+    </span>
+
+    <h1>
+        Bids for "{{ task.title }}"
+    </h1>
+
+    <p>
+        Review freelancers and choose the best bid.
+    </p>
+
+</div>
+
+
+{% if bids %}
+
+    <div class="bids-list">
+
+        {% for bid in bids %}
+
+            <article class="bid-card">
+
+                <div class="bid-user">
+
+                    <div class="avatar">
+                        {{ bid.freelancer.username|first|upper }}
+                    </div>
+
+                    <div>
+
+                        <h3>
+                            {{ bid.freelancer.username }}
+                        </h3>
+
+                        <small>
+                            Submitted
+                            {{ bid.created_at|date:"M d, Y" }}
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="bid-amount">
+
+                    <small>
+                        Bid Amount
+                    </small>
+
+                    <strong>
+                        ${{ bid.amount }}
+                    </strong>
+
+                </div>
+
+
+                <div class="bid-message">
+
+                    <p>
+                        {{ bid.message|linebreaksbr }}
+                    </p>
+
+                </div>
+
+
+                {% if task.status == "Open" %}
+
+                    <form
+                        method="post"
+                        action="{% url 'choose_winner' task.pk bid.pk %}"
+                    >
+
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            Choose Winner
+                        </button>
+
+                    </form>
+
+                {% else %}
+
+                    <span class="status {{ task.status|lower }}">
+                        Task {{ task.status }}
+                    </span>
+
+                {% endif %}
+
+            </article>
+
+        {% endfor %}
+
+    </div>
+
+{% else %}
+
+    <div class="empty-state">
+
+        <h3>
+            No bids yet.
+        </h3>
+
+        <p>
+            Freelancers haven't submitted any bids for this task.
+        </p>
+
+    </div>
+
+{% endif %}
+
+
+<a
+    href="{% url 'task_detail' task.pk %}"
+    class="back-link"
+>
+    ← Back to Task
+</a>
+
+{% endblock %}
